@@ -7,10 +7,7 @@ from six import string_types
 
 def modify_list(values=[], pattern="", replacement="", ignorecase=False):
     """ Perform a `re.sub` on every item in the list"""
-    if ignorecase:
-        flags = re.I
-    else:
-        flags = 0
+    flags = re.I if ignorecase else 0
     _re = re.compile(pattern, flags=flags)
     return [_re.sub(replacement, value) for value in values]
 
@@ -29,8 +26,7 @@ def extract_role_users(users={}, exclude_users=[]):
     role_users = []
     for user, details in list(users.items()):
         if user not in exclude_users and "roles" in details:
-            for role in details["roles"]:
-                role_users.append(role + ":" + user)
+            role_users.extend(f"{role}:{user}" for role in details["roles"])
     return role_users
 
 
@@ -39,27 +35,25 @@ def filename(filename=""):
 
 
 def remove_reserved(user_roles={}):
-    not_reserved = []
-    for user_role, details in list(user_roles.items()):
-        if (
-            not "metadata" in details
-            or not "_reserved" in details["metadata"]
-            or not details["metadata"]["_reserved"]
-        ):
-            not_reserved.append(user_role)
-    return not_reserved
+    return [
+        user_role
+        for user_role, details in list(user_roles.items())
+        if "metadata" not in details
+        or "_reserved" not in details["metadata"]
+        or not details["metadata"]["_reserved"]
+    ]
 
 
 def filter_reserved(users_role={}):
-    reserved = []
-    for user_role, details in list(users_role.items()):
+    return [
+        user_role
+        for user_role, details in list(users_role.items())
         if (
             "metadata" in details
             and "_reserved" in details["metadata"]
             and details["metadata"]["_reserved"]
-        ):
-            reserved.append(user_role)
-    return reserved
+        )
+    ]
 
 
 class FilterModule(object):
